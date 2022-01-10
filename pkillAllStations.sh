@@ -13,7 +13,7 @@
 #
 # Example: stationCmd="java aufgabe4.MyStation"
 ########################################################################################################
-stationCmd="java Station $mcastAddress $receivePort 1 $stationClass $UTCoffsetMs"
+stationCmd="java -cp /mnt/fileserver/MyHome/VSP3/VSP3/bin Station"
 
 ########################################################################################################
 # TODO: Enter data source programme with full path, but WITHOUT parameters 
@@ -21,7 +21,7 @@ stationCmd="java Station $mcastAddress $receivePort 1 $stationClass $UTCoffsetMs
 # Example:    dataSource="~/somewhere/Vessel3"
 #         or  dataSource="java -cp . vessel3.Vessel"
 ########################################################################################################
-dataSource="datasources/64bit/Vessel"
+dataSource="./Vessel"
 
 
 if [ "$1" = "--help" ]; then

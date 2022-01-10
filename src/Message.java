@@ -60,7 +60,7 @@ public class Message {
         //data : bytes 1-24
         byte[] data = new byte[DATA_SIZE];
 
-        for (int i = 0; i <=24; i++) {
+        for (int i = 1; i <24; i++) {
             data[i - 1] = buffer[i];
         }
         receivedMsg.data = data;
@@ -94,7 +94,7 @@ public class Message {
             result[0] = 'B';
         }
 
-        //byte 1-24: data
+        //byte 1-25: data
         for (int i = 0; i < msg.data.length; i++) {
             result[i + 1] = msg.data[i];
         }

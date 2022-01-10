@@ -161,7 +161,7 @@ public class Station {
 
                     //for the next frame, pick a slot, that hasn't been marked yet in this frame
                     ArrayList<Byte> freeSlotsInTheNextFrame = new ArrayList<>();
-                    for (byte i = 0; i <= 24; i++) {
+                    for (byte i = 0; i < 24; i++) {
                         freeSlotsInTheNextFrame.add(i);
                     }
 
@@ -258,7 +258,7 @@ public class Station {
 //		stationClass=$6
 //		UTCoffsetMs=$7
     public static void main(String[] args) {
-        if (args.length < 5) {
+        if (args.length < 7) {
             System.err.println("Not enough arguments");
             return;
         }
@@ -266,12 +266,12 @@ public class Station {
         String multiCastAddr = args[1];
         int port = Integer.parseInt(args[2]);
         StationClass sclass;
-        if(args[3].equals("A")) {
+        if(args[5].equals("A")) {
             sclass = StationClass.A;
         } else {
             sclass = StationClass.B;
         }
-        int utcOffset = Integer.parseInt(args[4]);
+        int utcOffset = Integer.parseInt(args[6]);
 
         _stationClass = sclass;
         _connection = new Connect(port, multiCastAddr, ifname);

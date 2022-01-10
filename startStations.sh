@@ -41,7 +41,7 @@ UTCoffsetMs=$7
 #
 # Example: teamNo="2"
 ########################################################################################################
-teamNo="1"
+teamNo="666"
 
 ########################################################################################################
 # TODO: Enter data source programme with full path, but WITHOUT parameters 
@@ -49,7 +49,7 @@ teamNo="1"
 # Example:    dataSource="~/somewhere/DataSource"
 #         or  dataSource="java -cp . datasource.DataSource"
 ########################################################################################################
-dataSource="datasource/64bit/Vessel3"
+dataSource="./Vessel3 2 3 1000"
 
 ########################################################################################################
 # TODO: Enter your station's start command.
@@ -57,7 +57,7 @@ dataSource="datasource/64bit/Vessel3"
 #
 # Example: stationCmd="java aufgabe4.MyStation $interfaceName $mcastAddress $receivePort $stationClass"
 ########################################################################################################
-stationCmd="java -cp out/production/vsp3/ Station $mcastAddress $receivePort $stationClass $UTCoffsetMs"
+stationCmd="java -cp /mnt/fileserver/MyHome/VSP3/VSP3/bin Station $interfaceName $mcastAddress $receivePort $firstIndex $lastIndex $stationClass $UTCoffsetMs"
 
 
 printUsage() {
