@@ -87,9 +87,15 @@ public class Station {
 
                     int diffSum = 0;
                     int numOfClassAMsgs = 0;
+
                     //evaluate in which slots other stations have sent something
-                    assert thisFrame != null;
                     for (Message m : thisFrame._messageList) {
+
+                        long toa = m.arrivalTime;
+                        long frameStart = curTime - 1000;
+
+                        int millsAfterFrameStart = (int) (toa - frameStart);
+                        int actualSlot = (int) Math.ceil(millsAfterFrameStart / SLOT_LENGTH);
 
                         //difference Timestamp - timeOfArrival for this message
                         if (m.stationClass == StationClass.A) {
@@ -103,6 +109,7 @@ public class Station {
                             }
                         }
                     }
+
                     long incOffset;
                     if (numOfClassAMsgs != 0) {
                         incOffset = diffSum / numOfClassAMsgs;
@@ -110,18 +117,13 @@ public class Station {
                         incOffset = 0;
                     }
                     _syncOffset += incOffset;
-                    System.out.println("New sync offset set to + " + _syncOffset);
+                    System.out.println("New sync offset set to " + _syncOffset);
 
                     _receivedMessagesLastFrame = thisFrame;
                     accessMessageList(AccessMode.CLEAR, null);
 
                     synchronized (_slotsMarkedAsUsedForNextFrame) {
                         _slotsMarkedAsUsedForNextFrame.clear();
-                    }
-                    try {
-                        Thread.sleep(999);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
                 }
             }
@@ -131,7 +133,6 @@ public class Station {
     private static class Sender extends Thread implements Runnable {
         @Override
         public void run() {
-            waitForInitialFrame("Sender");
             waitForInitialFrame("Sender");
 
             long handledFrameNo = 0;
@@ -150,24 +151,24 @@ public class Station {
                     handledFrameNo = thisFrameNo;
 
                     //read data from buffer to send
-                    byte[] data;
+                    byte[] data = null;
                     synchronized (_data) {
                         data = new byte[Message.DATA_SIZE];
                         for (int b = 0; b < Message.DATA_SIZE; b++) {
                             data[b] = (byte) _data[b];
                         }
                     }
-                    System.out.println("Waited for slot + " + _currentSlot + " frame offset was " + (curTime % 1000));
+                    System.out.println("Waited for slot " + _currentSlot + " frame offset was " + (curTime % 1000));
 
                     //for the next frame, pick a slot, that hasn't been marked yet in this frame
                     ArrayList<Byte> freeSlotsInTheNextFrame = new ArrayList<>();
-                    for (byte i = 0; i < 24; i++) {
+                    for (byte i = 0; i <= 24; i++) {
                         freeSlotsInTheNextFrame.add(i);
                     }
 
                     synchronized (_slotsMarkedAsUsedForNextFrame) {
                         for (Byte b : _slotsMarkedAsUsedForNextFrame) {
-                            freeSlotsInTheNextFrame.remove(b);
+                            freeSlotsInTheNextFrame.remove((Object) b);
                         }
                     }
 
@@ -178,49 +179,18 @@ public class Station {
                     }
                     System.out.println(" are free!");
 
-                    int randomIndex = (int) (Math.random() * (double) (freeSlotsInTheNextFrame.size()));
+                    int randomidx = (int) (Math.random() * (double) (freeSlotsInTheNextFrame.size()));
+                    _currentSlot = freeSlotsInTheNextFrame.get(randomidx);
                     System.out.println("I AM IN SLOT " + _currentSlot + "RIGHT NOW!");
-                    int slotRightNow = _currentSlot;
 
+                    Message newMsg = new Message();
+                    newMsg.stationClass = _stationClass;
+                    newMsg.data = data;
+                    newMsg.slotNumber = _currentSlot;
+                    newMsg.timeStamp = curTime; //maybe get new time
 
-                    if (freeSlotsInTheNextFrame.size() > 0) {
-                        _currentSlot = freeSlotsInTheNextFrame.get(randomIndex);
-                        int slotInNextFrame = _currentSlot;
-
-                        //0-24
-                        int slotsTillFrameEnd = 24 - slotRightNow;
-                        int slotLengthsToWait = slotsTillFrameEnd + slotInNextFrame + 1;
-                        int diffInMS = slotLengthsToWait * SLOT_LENGTH - 1;
-
-                        //for testing
-                        System.out.println("I WILL BE IN SLOT " + _currentSlot + " IN NEXT FRAME");
-                        System.out.println("Picked slot " + _currentSlot);
-
-                        System.out.println("I AM GONNA WAIT FOR " + diffInMS + " ms!");
-                        System.out.println("I AM IN SLOT " +slotRightNow + " NEXT FRAME I AM GOING TO SEND IN SLOT " + slotInNextFrame +
-                                            " SO I AM GOING TO WAIT " + slotLengthsToWait + " SLOT LENGTHS, AKA " + diffInMS + " MILLISECONDS");
-
-                        Message newMsg = new Message();
-                        newMsg.stationClass = _stationClass;
-                        newMsg.data = data;
-                        newMsg.slotNumber = _currentSlot;
-                        newMsg.timeStamp = curTime; //Maybe get new time
-
-                        byte[] byteMsg = Message.compose(newMsg);
-
-                        _connection.send(byteMsg);
-                        //FOR TESTING
-                        long carTime = System.currentTimeMillis();
-                        System.out.println("IT TOOK " + (carTime - curTime) + " MS");
-
-                        try {
-                            Thread.sleep(diffInMS);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        System.err.println("NO SLOTS WERE FREE!!!");
-                    }
+                    byte[] byteMsg = Message.compose(newMsg);
+                    _connection.send(byteMsg);
                 }
             }
         }
